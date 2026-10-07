@@ -11,8 +11,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+# Mostra o erro no terminal e numa caixa de aviso (atalhos do Iniciar rodam sem janela)
 function Stop-ComErro($msg) {
     Write-Host $msg -ForegroundColor Red
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.MessageBox]::Show($msg, 'Celular', 'OK', 'Warning') | Out-Null
     exit 1
 }
 
