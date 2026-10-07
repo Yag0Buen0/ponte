@@ -5,6 +5,7 @@ $ErrorActionPreference = 'Stop'
 $script = Join-Path $PSScriptRoot 'conectar-celular.ps1'
 $pasta = Join-Path ([Environment]::GetFolderPath('Programs')) 'Ponte'
 New-Item -ItemType Directory -Force $pasta | Out-Null
+Get-ChildItem $pasta -Filter *.lnk | Remove-Item   # remove atalhos de modos antigos
 
 # Icone do scrcpy (o comando no PATH e um link; o icone esta no exe real)
 $scrcpy = Get-Item (Get-Command scrcpy).Source
@@ -13,8 +14,8 @@ $icone = if ($scrcpy.Target) { @($scrcpy.Target)[0] } else { $scrcpy.FullName }
 $atalhos = [ordered]@{
     'Celular'             = 'normal'
     'Celular PiP'         = 'pip'
-    'Celular Deitado'     = 'deitado'
-    'Celular PiP Deitado' = 'pip-deitado'
+    'Celular Livre'       = 'livre'
+    'Celular PiP Livre'   = 'pip-livre'
 }
 
 $shell = New-Object -ComObject WScript.Shell

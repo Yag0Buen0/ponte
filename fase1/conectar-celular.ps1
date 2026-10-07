@@ -3,10 +3,11 @@
 #   (todos: janela redimensionavel para qualquer tamanho)
 #   normal       janela comum, tela fisica do celular apagada
 #   pip          janela pequena, sempre por cima, abre no canto inferior direito
-#   deitado      tela virtual 1920x1080 (apps/videos deitados), celular segue livre
-#   pip-deitado  tela virtual 1280x720 em janela pequena sempre por cima (video)
+#   livre        tela virtual separada: abre em pe e se ajusta ao formato da janela
+#                (estique para deitar, sem distorcer); o celular fisico segue livre
+#   pip-livre    tela virtual em janela pequena sempre por cima
 param(
-    [ValidateSet('normal', 'pip', 'deitado', 'pip-deitado')]
+    [ValidateSet('normal', 'pip', 'livre', 'pip-livre')]
     [string]$Modo = 'normal'
 )
 $ErrorActionPreference = 'Stop'
@@ -47,15 +48,15 @@ function Get-JanelaNoCanto($largura, $altura) {
 
 # Janela redimensionavel livremente em todos os modos:
 # - espelho (normal/pip): imagem estica para preencher a janela
-# - tela virtual (deitado): --flex-display faz a tela virtual acompanhar a janela, sem distorcer
+# - tela virtual (livre): --flex-display faz a tela virtual acompanhar a janela, sem distorcer
 function Get-OpcoesDoModo($modo) {
     $espelho = @('--turn-screen-off', '--no-window-aspect-ratio-lock', '--render-fit=stretched')
     $virtual = @('--flex-display', '--no-window-aspect-ratio-lock')
     switch ($modo) {
         'normal'      { $espelho }
         'pip'         { $espelho + @('--always-on-top') + (Get-JanelaNoCanto 240 520) }
-        'deitado'     { $virtual + @('--new-display=1920x1080') }
-        'pip-deitado' { $virtual + @('--new-display=1280x720', '--always-on-top') + (Get-JanelaNoCanto 480 270) }
+        'livre'       { $virtual + @('--new-display=1080x2340') }
+        'pip-livre'   { $virtual + @('--new-display=1080x2340', '--always-on-top') + (Get-JanelaNoCanto 240 520) }
     }
 }
 
