@@ -2,6 +2,11 @@
 # com a tela fisica do celular apagada.
 $ErrorActionPreference = 'Stop'
 
+function Stop-ComErro($msg) {
+    Write-Host $msg -ForegroundColor Red
+    exit 1
+}
+
 function Get-AdbDevices {
     adb devices | Select-Object -Skip 1 |
         Where-Object { $_ -match "`tdevice$" } |
@@ -23,13 +28,13 @@ if ($devices.Count -eq 0) {
     Write-Host 'Procurando o celular na rede...'
     $alvo = Find-CelularNaRede
     if (-not $alvo) {
-        throw 'Celular nao encontrado. Confira: mesma rede Wi-Fi e "Wireless debugging" ligado.'
+        Stop-ComErro 'Celular nao encontrado. Confira: mesma rede Wi-Fi e "Wireless debugging" ligado.'
     }
     adb connect $alvo | Out-Host
     $devices = @(Get-AdbDevices)
 }
 
-if ($devices.Count -eq 0) { throw 'Nao consegui conectar ao celular.' }
+if ($devices.Count -eq 0) { Stop-ComErro 'Nao consegui conectar ao celular.' }
 
 Write-Host "Conectado: $($devices[0])"
 # --no-audio: este PC nao tem saida de audio padrao (scrcpy fecha sem isso)
