@@ -305,7 +305,13 @@ namespace CelularRemoto
                 while (DateTime.Now < fim)
                 {
                     if (await Task.WhenAny(Task.Delay(1000), pularEspera.Task) == pularEspera.Task) return true;
-                    if (!await Task.Run(() => Adb.Bloqueado(serial))) return true;
+                    if (!await Task.Run(() => Adb.Bloqueado(serial)))
+                    {
+                        // A animacao de desbloqueio (Samsung) acende a tela de novo logo depois;
+                        // se o scrcpy abrir antes dela, o --turn-screen-off nao "pega"
+                        await Task.Delay(1500);
+                        return true;
+                    }
                 }
                 status.Text = "Ainda bloqueado. Desbloqueie o celular e clique em Iniciar.";
                 return false;
