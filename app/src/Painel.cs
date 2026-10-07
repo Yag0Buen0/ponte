@@ -20,6 +20,7 @@ namespace CelularRemoto
         TaskCompletionSource<bool> pularEspera;
         CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar;
         Label avisoDesempenho, avisoDepuracao, status;
+        LinkLabel creditos;
 
         public Painel()
         {
@@ -118,6 +119,7 @@ namespace CelularRemoto
             restaurar = new Button { Text = "Restaurar padrão", AutoSize = true };
             iniciar = new Button { Text = "▶  Iniciar", Width = 150, Height = 40, Font = new Font("Segoe UI", 11, FontStyle.Bold) };
             status = new Label { AutoSize = true, MaximumSize = new Size(460, 0), ForeColor = Color.DimGray, Margin = new Padding(0, 6, 0, 0) };
+            creditos = new LinkLabel { Text = "Créditos e licenças", AutoSize = true, Margin = new Padding(0, 8, 0, 0) };
             abrirAssimMesmo = new Button { Text = "Abrir assim mesmo (vou digitar o PIN)", AutoSize = true, Visible = false };
 
             var botoes = new TableLayoutPanel { ColumnCount = 2, Width = 460, Height = 46, Margin = new Padding(0, 8, 0, 0) };
@@ -138,7 +140,8 @@ namespace CelularRemoto
                 Grupo("Extras", gravar),
                 botoes,
                 status,
-                abrirAssimMesmo
+                abrirAssimMesmo,
+                creditos
             });
             Controls.Add(tudo);
             AcceptButton = iniciar;
@@ -151,7 +154,16 @@ namespace CelularRemoto
             atualizar.Click += async (s, e) => await AtualizarCelulares();
             restaurar.Click += (s, e) => { var p = Configuracao.Padrao(); p.UltimoSerial = config.UltimoSerial; MostrarConfig(p); };
             iniciar.Click += async (s, e) => await Iniciar();
+            creditos.LinkClicked += (s, e) => AbrirCreditos();
             abrirAssimMesmo.Click += (s, e) => { if (pularEspera != null) pularEspera.TrySetResult(true); };
+        }
+
+        // CREDITOS.md instalado ao lado do exe; sem ele, a pagina do projeto
+        static void AbrirCreditos()
+        {
+            var arquivo = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CREDITOS.md");
+            if (System.IO.File.Exists(arquivo)) System.Diagnostics.Process.Start("notepad.exe", "\"" + arquivo + "\"");
+            else System.Diagnostics.Process.Start("https://github.com/Yag0Buen0/ponte/blob/main/CREDITOS.md");
         }
 
         // ---------- configuracao <-> tela ----------

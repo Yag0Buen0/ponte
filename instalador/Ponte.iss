@@ -45,6 +45,7 @@ Type: files; Name: "{userprograms}\Celular.lnk"
 
 [Files]
 Source: "..\app\bin\CelularRemoto.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\CREDITOS.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScrcpyDir}\*"; DestDir: "{app}\scrcpy"; Excludes: "open_a_terminal_here.bat,scrcpy-noconsole.vbs"; Flags: ignoreversion recursesubdirs
 
 [Icons]
