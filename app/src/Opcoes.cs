@@ -27,6 +27,7 @@ namespace CelularRemoto
         [DataMember] public bool Gravar;
         [DataMember] public bool DesligarDepuracaoAoFechar;
         [DataMember] public bool DigitarComAcentos;
+        [DataMember] public bool ManterAcordado;
         [DataMember] public string UltimoSerial;
 
         public static Configuracao Padrao()
@@ -41,7 +42,7 @@ namespace CelularRemoto
             Resolucao = 1280; Fps = 60; BitrateMbps = 8;
             SempreNoTopo = true; TelaCheia = false; ApagarTela = true;
             DesligarTelaAoFechar = false; MostrarToques = false; Som = true;
-            Gravar = false; DesligarDepuracaoAoFechar = false; DigitarComAcentos = true; UltimoSerial = null;
+            Gravar = false; DesligarDepuracaoAoFechar = false; DigitarComAcentos = true; ManterAcordado = true; UltimoSerial = null;
         }
 
         // O desserializador nao chama construtor: campos ausentes no JSON ficam com o padrao
@@ -74,6 +75,9 @@ namespace CelularRemoto
             if (c.SempreNoTopo) a.Add("--always-on-top");
             if (c.TelaCheia) a.Add("--fullscreen");
             if (c.ApagarTela) a.Add("--turn-screen-off");
+            // Com a tela fisica apagada ninguem "mexe" no celular: no tempo de tela dele (ex.: 30 s)
+            // ele dorme de verdade e a janela fica preta. O scrcpy devolve o valor original ao fechar.
+            if (c.ManterAcordado) a.Add("--screen-off-timeout=3600");
             if (c.DesligarTelaAoFechar) a.Add("--power-off-on-close");
             if (c.MostrarToques) a.Add("--show-touches");
             if (!c.Som) a.Add("--no-audio");

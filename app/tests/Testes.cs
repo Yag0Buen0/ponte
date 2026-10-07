@@ -68,7 +68,8 @@ static class Testes
     public static void Teste_Opcoes_ArgumentosPadrao()
     {
         Igual("-s S1 --window-title=Celular Remoto --no-window-aspect-ratio-lock --render-fit=stretched " +
-              "--render-driver=opengl --max-size=1280 --max-fps=60 --video-bit-rate=8M --always-on-top --turn-screen-off --prefer-text",
+              "--render-driver=opengl --max-size=1280 --max-fps=60 --video-bit-rate=8M --always-on-top --turn-screen-off " +
+              "--screen-off-timeout=3600 --prefer-text",
             Args(Configuracao.Padrao()));
     }
 
@@ -186,6 +187,14 @@ static class Testes
         Verdade(SaidaAdb.Acordado("  mWakefulness=Awake\n"), "acordado");
         Verdade(!SaidaAdb.Acordado("  mWakefulness=Dozing\n"), "cochilando (AOD)");
         Verdade(!SaidaAdb.Acordado("  mWakefulness=Asleep\n"), "dormindo");
+    }
+
+    public static void Teste_Opcoes_ManterAcordado()
+    {
+        var c = Configuracao.Padrao();
+        Verdade(c.ManterAcordado, "padrao ligado");
+        c.ManterAcordado = false;
+        Verdade(!Args(c).Contains("--screen-off-timeout"), "desligado usa o tempo de tela do celular");
     }
 
     public static void Teste_Opcoes_Acentos()

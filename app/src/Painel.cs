@@ -18,7 +18,7 @@ namespace CelularRemoto
         ComboBox celular, resolucao, quadros, qualidade;
         Button atualizar, restaurar, iniciar, abrirAssimMesmo;
         TaskCompletionSource<bool> pularEspera;
-        CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar, acentos;
+        CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar, acentos, manterAcordado;
         Label avisoDesempenho, avisoDepuracao, status;
         LinkLabel creditos;
 
@@ -109,6 +109,7 @@ namespace CelularRemoto
             sempreNoTopo = Opcao("Sempre por cima dos outros apps");
             telaCheia = Opcao("Abrir em tela cheia");
             apagarTela = Opcao("Apagar a tela do celular enquanto usa");
+            manterAcordado = Opcao("Manter o celular acordado enquanto a janela estiver aberta");
             desligarTela = Opcao("Desligar a tela do celular ao fechar");
             mostrarToques = Opcao("Mostrar os toques na tela");
             desligarDepuracao = Opcao("Desligar a Depuração por Wi-Fi ao fechar (mais seguro)");
@@ -136,7 +137,7 @@ namespace CelularRemoto
                 linhaCelular,
                 Grupo("Imagem e desempenho", linhaRes, linhaFps, linhaQual, avisoDesempenho),
                 Grupo("Janela", sempreNoTopo, telaCheia),
-                Grupo("Celular", apagarTela, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
+                Grupo("Celular", apagarTela, manterAcordado, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
                 Grupo("Som", som),
                 Grupo("Teclado", acentos),
                 Grupo("Extras", gravar),
@@ -184,6 +185,7 @@ namespace CelularRemoto
             som.Checked = c.Som;
             gravar.Checked = c.Gravar;
             acentos.Checked = c.DigitarComAcentos;
+            manterAcordado.Checked = c.ManterAcordado;
             AtualizarAvisos();
         }
 
@@ -202,6 +204,7 @@ namespace CelularRemoto
                 Som = som.Checked,
                 Gravar = gravar.Checked,
                 DigitarComAcentos = acentos.Checked,
+                ManterAcordado = manterAcordado.Checked,
                 UltimoSerial = config.UltimoSerial
             };
         }

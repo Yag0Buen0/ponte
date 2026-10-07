@@ -38,7 +38,7 @@ Das próximas vezes, com a Depuração por Wi-Fi ligada, é só abrir e clicar e
 | Celular | Escolha qual celular usar quando houver mais de um; **Atualizar** procura de novo |
 | Imagem e desempenho | **Resolução** (Econômica 800p · Equilibrada 1280p · Alta 1920p · Máxima), **Quadros** (30 · 60 · 90 · 120 por segundo), **Qualidade** (Normal · Alta · Muito alta). Os níveis marcados com ⚠ gastam mais bateria e podem esquentar o celular; o painel avisa. |
 | Janela | Sempre por cima dos outros apps · Abrir em tela cheia |
-| Celular | Apagar a tela do celular enquanto usa · Desligar a tela ao fechar · Mostrar os toques · **Desligar a Depuração por Wi-Fi ao fechar** (mais seguro, mas na próxima vez você religa a depuração no celular antes de Iniciar) |
+| Celular | Apagar a tela do celular enquanto usa · Manter o celular acordado enquanto a janela estiver aberta (senão ele dorme no tempo de tela dele enquanto você só assiste, e a janela fica preta) · Desligar a tela ao fechar · Mostrar os toques · **Desligar a Depuração por Wi-Fi ao fechar** (mais seguro, mas na próxima vez você religa a depuração no celular antes de Iniciar) |
 | Som | Som do celular no PC (se o PC não tiver saída de áudio, ele desliga sozinho) |
 | Teclado | Digitar com acentos (ligado; desligue em jogos que usam W A S D) |
 | Extras | Gravar a tela: salva um MP4 na pasta Vídeos |
