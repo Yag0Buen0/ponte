@@ -125,6 +125,95 @@ static class Testes
         }
     }
 
+    // ---------- SaidaAdb ----------
+
+    public static void Teste_Adb_SeriaisProntos()
+    {
+        var saida = "List of devices attached\r\n" +
+                    "adb-ABC123-xyz._adb-tls-connect._tcp\tdevice\r\n" +
+                    "192.168.0.11:5555\toffline\r\n" +
+                    "XYZ\tunauthorized\r\n\r\n";
+        var r = SaidaAdb.SeriaisProntos(saida);
+        Igual(1, r.Count);
+        Igual("adb-ABC123-xyz._adb-tls-connect._tcp", r[0]);
+    }
+
+    public static void Teste_Adb_ServicosMdns()
+    {
+        var saida = "List of discovered mdns services\n" +
+                    "adb-ABC123-xyz\t_adb-tls-pairing._tcp\t192.168.0.10:33329\n" +
+                    "adb-ABC123-xyz\t_adb-tls-connect._tcp\t192.168.0.10:39111\n" +
+                    "outro\t_googlecast._tcp\t192.168.0.20:8009\n";
+        var s = SaidaAdb.ServicosMdns(saida);
+        Igual(2, s.Count);
+        Igual("192.168.0.10:33329", s.Single(x => x.Pareamento).Endereco);
+        Igual("192.168.0.10:39111", s.Single(x => !x.Pareamento).Endereco);
+        Igual(0, SaidaAdb.ServicosMdns("List of discovered mdns services\n").Count);
+    }
+
+    public static void Teste_Adb_Codigo()
+    {
+        Verdade(SaidaAdb.CodigoValido(" 123456 "), "6 digitos com espacos");
+        Verdade(!SaidaAdb.CodigoValido("12345"), "5 digitos");
+        Verdade(!SaidaAdb.CodigoValido("12a456"), "letra");
+        Verdade(!SaidaAdb.CodigoValido(null), "nulo");
+    }
+
+    public static void Teste_Adb_Pareamento()
+    {
+        Verdade(SaidaAdb.PareamentoOk("Successfully paired to 192.168.0.10:33329 [guid=adb-ABC123-xyz]"), "sucesso");
+        Verdade(!SaidaAdb.PareamentoOk("error: protocol fault (couldn't read status message): No error"), "falha");
+    }
+
+    public static void Teste_Adb_LogDoScrcpy()
+    {
+        var log = "INFO: Texture: 1080x2340\nERROR: Could not open audio device: No default audio device available\nERROR: Demuxer error\n";
+        Verdade(SaidaAdb.ErroDeAudio(log), "erro de audio");
+        Verdade(!SaidaAdb.ErroDeAudio("ERROR: Could not find any ADB device"), "outro erro");
+        Igual("ERROR: Could not open audio device: No default audio device available", SaidaAdb.PrimeiroErro(log));
+        Igual(null, SaidaAdb.PrimeiroErro("INFO: tudo certo"));
+    }
+
+    // ---------- ConfigArquivo ----------
+
+    static string ArquivoTemp()
+    {
+        return Path.Combine(Path.GetTempPath(), "celular-remoto-teste-" + Guid.NewGuid().ToString("N"), "config.json");
+    }
+
+    public static void Teste_Config_IdaEVolta()
+    {
+        var caminho = ArquivoTemp();
+        var c = Configuracao.Padrao();
+        c.Fps = 120; c.Som = false; c.Gravar = true; c.UltimoSerial = "S9";
+        ConfigArquivo.Salvar(caminho, c);
+        var lido = ConfigArquivo.Ler(caminho);
+        Igual(120, lido.Fps); Igual(false, lido.Som); Igual(true, lido.Gravar); Igual("S9", lido.UltimoSerial);
+        Directory.Delete(Path.GetDirectoryName(caminho), true);
+    }
+
+    public static void Teste_Config_AusenteOuCorrompido()
+    {
+        Igual(1280, ConfigArquivo.Ler(ArquivoTemp()).Resolucao);
+        var caminho = ArquivoTemp();
+        Directory.CreateDirectory(Path.GetDirectoryName(caminho));
+        File.WriteAllText(caminho, "isso nao e json {{{");
+        Igual(60, ConfigArquivo.Ler(caminho).Fps);
+        Directory.Delete(Path.GetDirectoryName(caminho), true);
+    }
+
+    public static void Teste_Config_ParcialEInvalido()
+    {
+        var caminho = ArquivoTemp();
+        Directory.CreateDirectory(Path.GetDirectoryName(caminho));
+        File.WriteAllText(caminho, "{\"Fps\":90,\"Resolucao\":555}");
+        var c = ConfigArquivo.Ler(caminho);
+        Igual(90, c.Fps);
+        Igual(1280, c.Resolucao);
+        Verdade(c.Som && c.ApagarTela && c.SempreNoTopo, "campos ausentes ficam no padrao");
+        Directory.Delete(Path.GetDirectoryName(caminho), true);
+    }
+
     public static void Teste_Opcoes_Normalizar()
     {
         var c = Configuracao.Padrao();
