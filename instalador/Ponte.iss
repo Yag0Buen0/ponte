@@ -54,6 +54,19 @@ Name: "{userdesktop}\Celular Remoto"; Filename: "{app}\CelularRemoto.exe"; Comme
 [Run]
 Filename: "{app}\CelularRemoto.exe"; Description: "Abrir o Celular Remoto"; Flags: postinstall nowait skipifsilent
 
+[Code]
+// O servidor do adb (de uma versao ja instalada) trava o adb.exe e impede a atualizacao
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  Codigo: Integer;
+  Adb: String;
+begin
+  Adb := ExpandConstant('{app}\scrcpy\adb.exe');
+  if FileExists(Adb) then
+    Exec(Adb, 'kill-server', '', SW_HIDE, ewWaitUntilTerminated, Codigo);
+  Result := '';
+end;
+
 [UninstallRun]
 ; Para o servidor do adb para nao travar a remocao dos arquivos
 Filename: "{app}\scrcpy\adb.exe"; Parameters: "kill-server"; Flags: runhidden; RunOnceId: "PararAdb"
