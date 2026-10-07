@@ -50,6 +50,12 @@ namespace CelularRemoto
             return (saida ?? "").Contains("Successfully paired");
         }
 
+        // `dumpsys window` -> tela de bloqueio aparecendo (o Android nao deixa captura-la: fica preta no PC)
+        public static bool Bloqueado(string dumpsys)
+        {
+            return (dumpsys ?? "").Contains("isKeyguardShowing=true");
+        }
+
         // PC sem saida de audio padrao: o scrcpy fecha com este erro
         public static bool ErroDeAudio(string log)
         {

@@ -174,6 +174,13 @@ static class Testes
         Igual(null, SaidaAdb.PrimeiroErro("INFO: tudo certo"));
     }
 
+    public static void Teste_Adb_Bloqueado()
+    {
+        Verdade(SaidaAdb.Bloqueado("    mShowingDream=false mDreamingLockscreen=true\n    isKeyguardShowing=true\n"), "bloqueado");
+        Verdade(!SaidaAdb.Bloqueado("    mShowingDream=false mDreamingLockscreen=true\n    isKeyguardShowing=false\n"), "desbloqueado");
+        Verdade(!SaidaAdb.Bloqueado(""), "sem informacao = nao bloqueia o fluxo");
+    }
+
     // ---------- ConfigArquivo ----------
 
     static string ArquivoTemp()

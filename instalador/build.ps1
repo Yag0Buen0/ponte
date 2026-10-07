@@ -1,6 +1,6 @@
-# Gera instalador\saida\Ponte-Setup-<versao>.exe
+# Gera instalador\saida\CelularRemoto-Setup-<versao>.exe
 # Precisa do Inno Setup 6:  winget install --id JRSoftware.InnoSetup -e
-param([string]$Versao = '0.1.0')
+param([string]$Versao = '0.2.0')
 $ErrorActionPreference = 'Stop'
 
 # scrcpy oficial, versao fixa e conferida por hash (traz o adb junto)
@@ -13,9 +13,8 @@ $cache = Join-Path $PSScriptRoot '.cache'
 $zip = Join-Path $cache "scrcpy-win64-v$scrcpyVersao.zip"
 $scrcpyDir = Join-Path $cache "scrcpy-win64-v$scrcpyVersao"
 
-# 1. Testes antes de empacotar
-$resultado = Invoke-Pester (Join-Path $raiz 'app\tests') -PassThru -Quiet
-if ($resultado.FailedCount) { throw "$($resultado.FailedCount) teste(s) falharam" }
+# 1. Compila o app (roda os testes antes; falhou -> para)
+& (Join-Path $raiz 'app\build.ps1')
 
 # 2. scrcpy
 New-Item -ItemType Directory -Force $cache | Out-Null
@@ -40,6 +39,6 @@ if (-not $iscc) { throw 'Inno Setup 6 nao encontrado: winget install --id JRSoft
 & $iscc /Q "/DVersao=$Versao" "/DScrcpyDir=$scrcpyDir" (Join-Path $PSScriptRoot 'Ponte.iss')
 if ($LASTEXITCODE) { throw 'ISCC falhou' }
 
-$exe = Join-Path $PSScriptRoot "saida\Ponte-Setup-$Versao.exe"
+$exe = Join-Path $PSScriptRoot "saida\CelularRemoto-Setup-$Versao.exe"
 Write-Host "Pronto: $exe" -ForegroundColor Green
 Write-Host "SHA256: $((Get-FileHash $exe -Algorithm SHA256).Hash)"
