@@ -1,3 +1,5 @@
 fase1/vendor/
 node_modules/
 .env
+instalador/.cache/
+instalador/saida/

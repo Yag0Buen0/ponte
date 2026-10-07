@@ -1,31 +1,36 @@
 # Ponte
 
-Controle do celular Android pelo PC (e, na Fase 2, do PC pelo celular).
-Design: `docs/superpowers/specs/2026-10-07-ponte-design.md` · Plano da Fase 1: `docs/superpowers/plans/2026-10-07-fase1-setup.md`
+Veja e controle a tela do seu celular Android no PC com Windows, **sem cabo**, pelo Wi-Fi.
+Por baixo usa o [scrcpy](https://github.com/Genymobile/scrcpy) (que já vem dentro do instalador).
 
-## Fase 1 — uso diário (ferramentas prontas)
+## Instalar
 
-Requisitos no PC: scrcpy (traz o adb) — `winget install --id Genymobile.scrcpy -e`.
-No celular: Settings → System → Developer options → **Wireless debugging** ligado, mesma rede Wi-Fi do PC.
+1. Baixe o `Ponte-Setup-x.y.z.exe` em [**Releases**](https://github.com/Yag0Buen0/ponte/releases).
+2. Abra. Se aparecer *"O Windows protegeu o computador"*: **Mais informações → Executar assim mesmo** (o instalador não tem assinatura digital paga).
+3. Avance e conclua. Não precisa de administrador; instala só para o seu usuário.
 
-### Abrir o celular no PC
+## Primeira conexão
 
-Tecla **Windows** → digite **Celular** (pasta *Ponte* no menu Iniciar). Para fixar: botão direito → *Fixar em Iniciar*.
+Precisa de **Android 11 ou mais novo**, com celular e PC **no mesmo Wi-Fi**.
 
-| Atalho | Modo | Como fica |
-|---|---|---|
-| Celular | `normal` | Espelho da tela, tela física apagada |
-| Celular PiP | `pip` | Janela pequena, sempre por cima, abre no canto inferior direito |
-| Celular Livre | `livre` | Tela virtual separada: abre em pé e se ajusta ao formato da janela (estique para deitar, sem distorcer); o celular físico fica livre |
-| Celular PiP Livre | `pip-livre` | Tela virtual pequena, sempre por cima |
+1. No celular, ative as **Opções do desenvolvedor**: Configurações → Sobre o telefone → toque 7 vezes em **Número da versão**.
+2. Configurações → Opções do desenvolvedor → **Depuração por Wi-Fi** → ligue.
+3. Abra o **Celular** no menu Iniciar do PC. Como o celular ainda não foi pareado, aparece o assistente.
+4. No celular: **Depuração por Wi-Fi → Parear dispositivo com código**. Digite o código de 6 dígitos no assistente e clique em **Parear**.
 
-Todas as janelas redimensionam para qualquer tamanho e podem ser arrastadas pela barra de título.
-Pelo terminal: `fase1\conectar-celular.bat` ou `powershell -File fase1\conectar-celular.ps1 -Modo pip`.
-Recriar os atalhos do Iniciar: `powershell -ExecutionPolicy Bypass -File fase1\criar-atalhos.ps1`.
+Pronto. Das próximas vezes, com a Depuração por Wi-Fi ligada, é só abrir **Celular** no menu Iniciar.
 
-### Atalhos do teclado (com a janela selecionada)
+| Inglês | Português |
+|---|---|
+| Settings → About phone → Build number | Configurações → Sobre o telefone → Número da versão |
+| Developer options → Wireless debugging | Opções do desenvolvedor → Depuração por Wi-Fi |
+| Pair device with pairing code | Parear dispositivo com código de pareamento |
 
-| Ação | Atalho |
+## Usando
+
+A janela pode ser **redimensionada para qualquer tamanho** (a imagem estica) e arrastada pela barra de título. A tela física do celular fica apagada enquanto você usa pelo PC.
+
+| Ação | Atalho (com a janela selecionada) |
 |---|---|
 | Voltar | botão direito / Alt+B |
 | Tela inicial | botão do meio / Alt+H |
@@ -38,32 +43,36 @@ Recriar os atalhos do Iniciar: `powershell -ExecutionPolicy Bypass -File fase1\c
 | Apagar/acender tela física | Alt+O / Alt+Shift+O |
 | Colar texto do PC | Ctrl+V |
 
-### Pelo navegador
-
-1. Primeira vez: `powershell -ExecutionPolicy Bypass -File fase1\instalar-web.ps1` (baixa e compila o ws-scrcpy em `fase1\vendor\`, fora do git).
-2. `fase1\iniciar-web.bat` → abre `http://localhost:8000` → clique em **WebCodecs** ao lado do celular.
-
-O servidor escuta só em `127.0.0.1` (não aparece para outros aparelhos da rede).
-
-### Primeira vez num PC novo (pareamento)
-
-Wireless debugging → **Pair device with pairing code**. A porta de pareamento é diferente da porta da tela principal — descubra com:
-
-```
-adb mdns services          # linha _adb-tls-pairing._tcp -> IP:porta
-adb pair <IP>:<porta> <codigo>
-```
-
 ## Coisas que é bom saber
 
-- **Tela preta = celular bloqueado.** A Samsung não deixa capturar a tela de bloqueio. Desbloqueie no celular, ou às cegas pelo PC: Alt+P, arrastar de baixo pra cima, digitar o PIN, Enter. Aumentar o *Screen timeout* evita que ele bloqueie durante o uso.
-- **Sem áudio**: este PC não tem saída de áudio padrão, então o som fica no celular (`--no-audio`).
-- **Apps de banco** e outros protegidos aparecem pretos — é proteção do app.
-- **Bateria**: só o Wireless debugging ligado gasta quase nada; transmitindo a tela, algo como 8–20%/hora.
-- **Segurança**: só computadores pareados conectam. Desligue o Wireless debugging quando não usar e não ligue em Wi-Fi público. Para revogar: *Paired devices → Forget*.
+- **Tela preta = celular bloqueado.** O Android não deixa capturar a tela de bloqueio. Desbloqueie no celular, ou às cegas pelo PC: Alt+P, arraste de baixo para cima, digite o PIN, Enter. Aumentar o *tempo de tela* evita que ele bloqueie durante o uso.
+- **Som**: vai para o PC. Se o PC não tiver saída de áudio, a Ponte abre sem som automaticamente.
+- **Apps de banco** e outros protegidos aparecem pretos — é proteção do próprio app.
+- **Bateria**: só a Depuração por Wi-Fi ligada gasta quase nada; transmitindo a tela, algo como 8–20% por hora.
+- **Segurança**: só computadores pareados conectam (conexão criptografada). Desligue a Depuração por Wi-Fi quando não usar e não ligue em Wi-Fi público. Para revogar: Depuração por Wi-Fi → Dispositivos pareados → Esquecer.
 
-## Pendências
+## Desinstalar
 
-- **Fora de casa (Tailscale)**: instalado no PC, falta login no PC e no celular — plano, Task 6.
-- **PC pelo celular**: RDP pulado (exige senha na conta do Windows). Fica para a Fase 2 (Ponte com login próprio).
-- **Fase 2**: app Ponte — pareamento por QR, PC→celular e celular→PC no navegador.
+Configurações do Windows → Aplicativos → Aplicativos instalados → **Ponte (Celular no PC)** → Desinstalar.
+
+## Para desenvolvedores
+
+```
+app/            Celular.ps1 (abre o celular / assistente de pareamento) e Ponte.Core.psm1 (funções puras)
+app/tests/      testes (Pester 3.4, já vem no Windows): powershell -Command "Invoke-Pester app\tests"
+instalador/     Ponte.iss (Inno Setup 6) e build.ps1
+fase1/          extra: controle pelo navegador com ws-scrcpy (instalar-web.ps1, iniciar-web.bat)
+docs/           design e planos
+```
+
+Gerar o instalador (precisa do Inno Setup 6: `winget install --id JRSoftware.InnoSetup -e`):
+
+```
+powershell -ExecutionPolicy Bypass -File instalador\build.ps1 -Versao 0.1.0
+```
+
+O build roda os testes, baixa o scrcpy oficial numa versão fixa, confere o SHA256 e gera `instalador\saida\Ponte-Setup-<versão>.exe`.
+
+## Licenças
+
+O scrcpy (inclui o adb) é distribuído sob a Apache License 2.0 — o texto vai junto no instalador (`scrcpy\LICENSE.txt`).
