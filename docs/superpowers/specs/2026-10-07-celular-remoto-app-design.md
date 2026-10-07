@@ -29,21 +29,26 @@ Transformar o launcher da Ponte num app de verdade:
 | Celular | Apagar a tela enquanto usa | sim/não | sim | — | `--turn-screen-off` |
 | Celular | Desligar a tela ao fechar | sim/não | não | — | `--power-off-on-close` |
 | Celular | Mostrar toques | sim/não | não | — | `--show-touches` |
+| Celular | Desligar a Depuração por Wi-Fi ao fechar | sim/não | não | ⚠ (aviso próprio) | depois que o scrcpy fecha: `adb -s <serial> shell settings put global adb_wifi_enabled 0` |
 | Som | Som do celular no PC | sim/não | sim | — | sem: `--no-audio` |
 | Extras | Gravar a tela | sim/não | não | — | `--record=<Vídeos>\Celular Remoto <aaaa-MM-dd HH-mm-ss>.mp4` |
 
 Sempre presentes: `-s <serial>`, `--window-title=Celular Remoto`, `--no-window-aspect-ratio-lock`, `--render-fit=stretched`, `--render-driver=opengl` (corrige o travamento com tela apagada em Samsung + Intel).
 
-Aviso (texto fixo, aparece só quando algum ⚠ está selecionado): "Resolução, quadros ou qualidade altos gastam mais bateria e podem esquentar o celular."
+Avisos (aparecem só quando a opção correspondente está marcada):
+- desempenho (Resolução/Quadros/Qualidade em nível ⚠): "Resolução, quadros ou qualidade altos gastam mais bateria e podem esquentar o celular."
+- desligar depuração: "Na próxima vez não tem conexão rápida: você vai precisar religar a Depuração por Wi-Fi no celular antes de clicar em Iniciar."
+
+**Seletor de celular**: o painel lista os celulares conectados/encontrados (modelo + serial curto, via `adb devices` e `getprop ro.product.model`, sem duplicar o mesmo aparelho visto por IP e por mDNS). Um só → escolhido sozinho; vários → o usuário escolhe; o último escolhido fica salvo (`ultimoSerial`) e vem pré-selecionado. Botão "Atualizar" refaz a busca.
 
 Botão **Restaurar padrão** volta todos os campos aos padrões da tabela.
 
 ## Fluxo
 
 1. Abre o painel com a configuração salva (ou padrões; arquivo corrompido → padrões, sem erro).
-2. **Iniciar**: salva a configuração, procura o celular (adb devices → mDNS `_adb-tls-connect` → `adb connect`). Não achou → assistente de pareamento (o mesmo da v0.1: código de 6 dígitos, porta achada por mDNS, botão "Tentar conectar").
+2. **Iniciar**: salva a configuração e usa o celular selecionado; se nenhum estiver disponível, procura (adb devices → mDNS `_adb-tls-connect` → `adb connect`). Não achou → assistente de pareamento, com o lembrete "Já pareou antes? Ligue a Depuração por Wi-Fi no celular — dá pra pôr um botão no painel rápido: Opções do desenvolvedor → Blocos de desenvolvedor das configurações rápidas → Depuração por Wi-Fi" (o mesmo da v0.1: código de 6 dígitos, porta achada por mDNS, botão "Tentar conectar").
 3. Acorda o celular (`input keyevent KEYCODE_WAKEUP`), esconde o painel e abre o scrcpy.
-4. scrcpy fechou → o painel volta. Se fechou com "Could not open audio device", reabre sem som e desmarca "Som" para a próxima vez. Outro erro rápido (< 15 s) → caixa de aviso com a primeira linha `ERROR`.
+4. scrcpy fechou → se "Desligar a Depuração por Wi-Fi ao fechar" estiver marcado, desliga; o painel volta. Se fechou com "Could not open audio device", reabre sem som e desmarca "Som" para a próxima vez. Outro erro rápido (< 15 s) → caixa de aviso com a primeira linha `ERROR`.
 
 ## Estrutura
 
