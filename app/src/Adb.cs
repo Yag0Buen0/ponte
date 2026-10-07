@@ -152,10 +152,13 @@ namespace CelularRemoto
             return false;
         }
 
-        // Celular dormindo = imagem preta no scrcpy; acorda antes (o desbloqueio fica com o usuario)
-        public static void Acordar(string serial)
+        // Celular dormindo = imagem preta no scrcpy; acorda antes (o desbloqueio fica com o usuario).
+        // true = ja estava acordado
+        public static bool Acordar(string serial)
         {
+            if (SaidaAdb.Acordado(Executar(8000, "-s", serial, "shell", "dumpsys power | grep mWakefulness="))) return true;
             Executar(8000, "-s", serial, "shell", "input", "keyevent", "KEYCODE_WAKEUP");
+            return false;
         }
 
         public static bool Bloqueado(string serial)

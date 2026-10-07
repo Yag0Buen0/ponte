@@ -50,6 +50,12 @@ namespace CelularRemoto
             return (saida ?? "").Contains("Successfully paired");
         }
 
+        // `dumpsys power` -> tela ligada (Dozing = tela de "sempre ligada"/AOD, conta como dormindo)
+        public static bool Acordado(string dumpsys)
+        {
+            return (dumpsys ?? "").Contains("mWakefulness=Awake");
+        }
+
         // `dumpsys window` -> tela de bloqueio aparecendo (o Android nao deixa captura-la: fica preta no PC)
         public static bool Bloqueado(string dumpsys)
         {

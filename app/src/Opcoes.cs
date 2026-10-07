@@ -26,6 +26,7 @@ namespace CelularRemoto
         [DataMember] public bool Som;
         [DataMember] public bool Gravar;
         [DataMember] public bool DesligarDepuracaoAoFechar;
+        [DataMember] public bool DigitarComAcentos;
         [DataMember] public string UltimoSerial;
 
         public static Configuracao Padrao()
@@ -40,7 +41,7 @@ namespace CelularRemoto
             Resolucao = 1280; Fps = 60; BitrateMbps = 8;
             SempreNoTopo = true; TelaCheia = false; ApagarTela = true;
             DesligarTelaAoFechar = false; MostrarToques = false; Som = true;
-            Gravar = false; DesligarDepuracaoAoFechar = false; UltimoSerial = null;
+            Gravar = false; DesligarDepuracaoAoFechar = false; DigitarComAcentos = true; UltimoSerial = null;
         }
 
         // O desserializador nao chama construtor: campos ausentes no JSON ficam com o padrao
@@ -77,6 +78,8 @@ namespace CelularRemoto
             if (c.MostrarToques) a.Add("--show-touches");
             if (!c.Som) a.Add("--no-audio");
             if (c.Gravar) a.Add("--record=" + CaminhoGravacao(pastaVideos, agora));
+            // Letras como texto pronto: acentos (´ + a = á) chegam certos; atrapalha jogos (WASD)
+            if (c.DigitarComAcentos) a.Add("--prefer-text");
             return a;
         }
 

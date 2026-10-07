@@ -68,7 +68,7 @@ static class Testes
     public static void Teste_Opcoes_ArgumentosPadrao()
     {
         Igual("-s S1 --window-title=Celular Remoto --no-window-aspect-ratio-lock --render-fit=stretched " +
-              "--render-driver=opengl --max-size=1280 --max-fps=60 --video-bit-rate=8M --always-on-top --turn-screen-off",
+              "--render-driver=opengl --max-size=1280 --max-fps=60 --video-bit-rate=8M --always-on-top --turn-screen-off --prefer-text",
             Args(Configuracao.Padrao()));
     }
 
@@ -179,6 +179,22 @@ static class Testes
         Verdade(SaidaAdb.Bloqueado("    mShowingDream=false mDreamingLockscreen=true\n    isKeyguardShowing=true\n"), "bloqueado");
         Verdade(!SaidaAdb.Bloqueado("    mShowingDream=false mDreamingLockscreen=true\n    isKeyguardShowing=false\n"), "desbloqueado");
         Verdade(!SaidaAdb.Bloqueado(""), "sem informacao = nao bloqueia o fluxo");
+    }
+
+    public static void Teste_Adb_Acordado()
+    {
+        Verdade(SaidaAdb.Acordado("  mWakefulness=Awake\n"), "acordado");
+        Verdade(!SaidaAdb.Acordado("  mWakefulness=Dozing\n"), "cochilando (AOD)");
+        Verdade(!SaidaAdb.Acordado("  mWakefulness=Asleep\n"), "dormindo");
+    }
+
+    public static void Teste_Opcoes_Acentos()
+    {
+        var c = Configuracao.Padrao();
+        Verdade(c.DigitarComAcentos, "padrao ligado");
+        Verdade(Args(c).EndsWith("--prefer-text"), "manda texto pronto (acentos)");
+        c.DigitarComAcentos = false;
+        Verdade(!Args(c).Contains("--prefer-text"), "desligado para jogos");
     }
 
     // ---------- ConfigArquivo ----------

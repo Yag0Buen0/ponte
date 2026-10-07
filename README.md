@@ -40,6 +40,7 @@ Das próximas vezes, com a Depuração por Wi-Fi ligada, é só abrir e clicar e
 | Janela | Sempre por cima dos outros apps · Abrir em tela cheia |
 | Celular | Apagar a tela do celular enquanto usa · Desligar a tela ao fechar · Mostrar os toques · **Desligar a Depuração por Wi-Fi ao fechar** (mais seguro, mas na próxima vez você religa a depuração no celular antes de Iniciar) |
 | Som | Som do celular no PC (se o PC não tiver saída de áudio, ele desliga sozinho) |
+| Teclado | Digitar com acentos (ligado; desligue em jogos que usam W A S D) |
 | Extras | Gravar a tela: salva um MP4 na pasta Vídeos |
 
 As escolhas ficam salvas para a próxima vez. **Restaurar padrão** volta tudo ao normal. Quando você fecha a janela do celular, o painel volta.

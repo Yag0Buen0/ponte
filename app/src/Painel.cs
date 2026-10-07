@@ -18,7 +18,7 @@ namespace CelularRemoto
         ComboBox celular, resolucao, quadros, qualidade;
         Button atualizar, restaurar, iniciar, abrirAssimMesmo;
         TaskCompletionSource<bool> pularEspera;
-        CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar;
+        CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar, acentos;
         Label avisoDesempenho, avisoDepuracao, status;
         LinkLabel creditos;
 
@@ -115,6 +115,7 @@ namespace CelularRemoto
             avisoDepuracao = Aviso("Na próxima vez não tem conexão rápida: você vai precisar religar a Depuração por Wi-Fi no celular antes de clicar em Iniciar.");
             som = Opcao("Som do celular no PC");
             gravar = Opcao("Gravar a tela (salva na pasta Vídeos)");
+            acentos = Opcao("Digitar com acentos (desligue para jogos que usam W A S D)");
 
             restaurar = new Button { Text = "Restaurar padrão", AutoSize = true };
             iniciar = new Button { Text = "▶  Iniciar", Width = 150, Height = 40, Font = new Font("Segoe UI", 11, FontStyle.Bold) };
@@ -137,6 +138,7 @@ namespace CelularRemoto
                 Grupo("Janela", sempreNoTopo, telaCheia),
                 Grupo("Celular", apagarTela, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
                 Grupo("Som", som),
+                Grupo("Teclado", acentos),
                 Grupo("Extras", gravar),
                 botoes,
                 status,
@@ -181,6 +183,7 @@ namespace CelularRemoto
             desligarDepuracao.Checked = c.DesligarDepuracaoAoFechar;
             som.Checked = c.Som;
             gravar.Checked = c.Gravar;
+            acentos.Checked = c.DigitarComAcentos;
             AtualizarAvisos();
         }
 
@@ -198,6 +201,7 @@ namespace CelularRemoto
                 DesligarDepuracaoAoFechar = desligarDepuracao.Checked,
                 Som = som.Checked,
                 Gravar = gravar.Checked,
+                DigitarComAcentos = acentos.Checked,
                 UltimoSerial = config.UltimoSerial
             };
         }
@@ -259,7 +263,9 @@ namespace CelularRemoto
             Salvar();
             status.Text = "";
 
-            await Task.Run(() => Adb.Acordar(aparelho.Serial));
+            // Estava dormindo: espera a animacao de acordar da Samsung terminar, senao ela acende
+            // a tela de novo logo depois que o scrcpy apaga
+            if (!await Task.Run(() => Adb.Acordar(aparelho.Serial))) await Task.Delay(1500);
             if (!await EsperarDesbloqueio(aparelho.Serial)) return;
             status.Text = "";
             Hide();
