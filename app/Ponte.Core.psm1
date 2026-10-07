@@ -34,10 +34,13 @@ function Test-ErroDeAudio([string]$Texto) {
     $Texto -match 'Could not open audio device'
 }
 
-# Janela redimensionavel para qualquer tamanho (imagem estica), tela fisica apagada
+# Janela redimensionavel para qualquer tamanho (imagem estica), sempre por cima,
+# tela fisica apagada. OpenGL: com a tela apagada (Samsung) o Direct3D descartava
+# quadros em rajadas e a imagem travava; com OpenGL fica fluido.
 function Get-OpcoesScrcpy([string]$Serial, [switch]$SemAudio) {
     $opcoes = @('-s', $Serial, '--window-title=Celular', '--turn-screen-off',
-        '--no-window-aspect-ratio-lock', '--render-fit=stretched')
+        '--no-window-aspect-ratio-lock', '--render-fit=stretched',
+        '--always-on-top', '--render-driver=opengl')
     if ($SemAudio) { $opcoes += '--no-audio' }
     $opcoes
 }

@@ -28,7 +28,7 @@ Pronto. Das próximas vezes, com a Depuração por Wi-Fi ligada, é só abrir **
 
 ## Usando
 
-A janela pode ser **redimensionada para qualquer tamanho** (a imagem estica) e arrastada pela barra de título. A tela física do celular fica apagada enquanto você usa pelo PC.
+A janela fica **sempre por cima dos outros apps**, pode ser **redimensionada para qualquer tamanho** (a imagem estica) e arrastada pela barra de título. A tela física do celular fica apagada enquanto você usa pelo PC.
 
 | Ação | Atalho (com a janela selecionada) |
 |---|---|

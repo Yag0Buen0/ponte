@@ -62,9 +62,9 @@ Describe 'Test-ErroDeAudio' {
 }
 
 Describe 'Get-OpcoesScrcpy' {
-    It 'abre redimensionavel, esticando, com a tela fisica apagada' {
+    It 'abre redimensionavel, esticando, por cima dos outros apps, com a tela fisica apagada e OpenGL' {
         $o = Get-OpcoesScrcpy -Serial 'S1'
-        ($o -join ' ') | Should Be '-s S1 --window-title=Celular --turn-screen-off --no-window-aspect-ratio-lock --render-fit=stretched'
+        ($o -join ' ') | Should Be '-s S1 --window-title=Celular --turn-screen-off --no-window-aspect-ratio-lock --render-fit=stretched --always-on-top --render-driver=opengl'
     }
     It 'adiciona --no-audio quando pedido' {
         (Get-OpcoesScrcpy -Serial 'S1' -SemAudio) -contains '--no-audio' | Should Be $true
