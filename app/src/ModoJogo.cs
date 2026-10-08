@@ -1,6 +1,7 @@
-// Modo jogo: com a janela do celular em primeiro plano, F1 liga/desliga e F2 abre o editor.
-// Ligado, teclas e cliques mapeados viram toques (pelo CanalToque) e nao chegam ao scrcpy;
-// o mouse vira a camera, com o cursor preso no centro da janela.
+// Modo jogo: com a janela do celular em primeiro plano, F1 liga/desliga, F2 abre o editor e
+// F3 solta/prende o mouse (teclas configuraveis no painel). Ligado, teclas e cliques mapeados
+// viram toques (pelo CanalToque) e nao chegam ao scrcpy; com o mouse preso, ele vira a camera:
+// a seta some e fica parada no centro da janela.
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -54,6 +55,9 @@ namespace CelularRemoto
         IntPtr hookTeclado, hookMouse;
         readonly Timer relogio;
         readonly Etiqueta etiqueta;
+        readonly CursorOculto cursorOculto = new CursorOculto();
+        readonly string teclaModoJogo, teclaEditor, teclaMouse;
+        bool mousePreso;
 
         CanalToque canal;
         Tela tela;
@@ -67,9 +71,12 @@ namespace CelularRemoto
         DateTime ultimoMovimento, ultimaLeituraTela;
         Nativo.PONTO centroFisico;
 
-        public ModoJogo(string serial, IntPtr janela, Control ui)
+        public ModoJogo(string serial, IntPtr janela, Control ui, Configuracao config)
         {
             this.serial = serial;
+            teclaModoJogo = config.TeclaModoJogo;
+            teclaEditor = config.TeclaEditor;
+            teclaMouse = config.TeclaMouse;
             this.janela = janela;
             this.ui = ui;
             procTeclado = AoTeclado;
@@ -124,22 +131,55 @@ namespace CelularRemoto
             var el = mapa.Elementos.FirstOrDefault(e => e.Tipo == ElementoMapa.Camera);
             camera = el != null ? new DedoCamera(el, tela) : null;
             ultimaLeituraTela = DateTime.Now;
-            if (camera != null)
-            {
-                var area = Nativo.AreaCliente(janela);
-                Nativo.SetCursorPos(area.Left + area.Width / 2, area.Top + area.Height / 2);
-                Nativo.GetPhysicalCursorPos(out centroFisico);
-                var r = new Nativo.RECT { Esquerda = area.Left, Topo = area.Top, Direita = area.Right, Base = area.Bottom };
-                Nativo.ClipCursor(ref r);
-            }
             ativo = true;
-            Mostrar("MODO JOGO  ·  F1 sai  ·  F2 edita");
+            if (camera != null) PrenderMouse(); else mousePreso = false;
+            MostrarStatus();
+        }
+
+        void MostrarStatus()
+        {
+            Mostrar("MODO JOGO  ·  " + Teclas.Exibir(teclaModoJogo) + " sai  ·  " + Teclas.Exibir(teclaEditor) + " edita" +
+                (camera != null ? "  ·  " + Teclas.Exibir(teclaMouse) + (mousePreso ? " solta o mouse" : " prende o mouse") : ""));
+        }
+
+        // Mouse preso: seta escondida e parada no centro; o movimento vira a camera
+        void PrenderMouse()
+        {
+            var area = Nativo.AreaCliente(janela);
+            var centro = new Point(area.Left + area.Width / 2, area.Top + area.Height / 2);
+            Nativo.SetCursorPos(centro.X, centro.Y);
+            Nativo.GetPhysicalCursorPos(out centroFisico);
+            var r = new Nativo.RECT { Esquerda = area.Left, Topo = area.Top, Direita = area.Right, Base = area.Bottom };
+            Nativo.ClipCursor(ref r);
+            cursorOculto.MostrarEm(centro);
+            Nativo.SetCursorPos(centro.X, centro.Y);   // faz o Windows trocar para a seta vazia
+            mousePreso = true;
+        }
+
+        // Mouse solto: seta normal, cliques vao para o scrcpy (menus do jogo); o teclado continua mapeado
+        void SoltarMouse()
+        {
+            if (camera != null) Enviar(IdCamera, camera.Soltar());
+            Processar(ElementoMapa.MouseEsquerdo, false);
+            Processar(ElementoMapa.MouseDireito, false);
+            cursorOculto.Hide();
+            Nativo.LiberarCursor(IntPtr.Zero);
+            mousePreso = false;
+        }
+
+        void AlternarMouse()
+        {
+            if (!ativo || camera == null) return;
+            if (mousePreso) SoltarMouse(); else PrenderMouse();
+            MostrarStatus();
         }
 
         void Desativar()
         {
             SoltarTudo();
             ativo = false;
+            mousePreso = false;
+            cursorOculto.Hide();
             Nativo.LiberarCursor(IntPtr.Zero);
             Esconder();
         }
@@ -263,13 +303,16 @@ namespace CelularRemoto
                 bool soltou = msg == Nativo.WM_KEYUP || msg == Nativo.WM_SYSKEYUP;
                 if ((k.flags & Nativo.LLKHF_INJECTED) == 0 && (apertou || soltou) && !editando && JanelaEmFoco)
                 {
-                    var tecla = (Keys)k.vkCode;
-                    if (tecla == Keys.F1 || tecla == Keys.F2)
+                    var nome = Teclas.Nome((Keys)k.vkCode);
+                    Action atalho = nome == teclaModoJogo ? Alternar
+                        : nome == teclaEditor ? AbrirEditor
+                        : nome == teclaMouse && ativo && camera != null ? (Action)AlternarMouse : null;
+                    if (atalho != null)
                     {
-                        if (apertou) ui.BeginInvoke(tecla == Keys.F1 ? (Action)Alternar : AbrirEditor);
+                        if (apertou) ui.BeginInvoke(atalho);
                         return (IntPtr)1;
                     }
-                    if (ativo && Processar(Teclas.Nome(tecla), apertou)) return (IntPtr)1;
+                    if (ativo && Processar(nome, apertou)) return (IntPtr)1;
                 }
             }
             return Nativo.CallNextHookEx(hookTeclado, nCode, wParam, lParam);
@@ -277,7 +320,7 @@ namespace CelularRemoto
 
         IntPtr AoMouse(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && ativo && JanelaEmFoco)
+            if (nCode >= 0 && ativo && mousePreso && JanelaEmFoco)
             {
                 var m = (Nativo.MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(Nativo.MSLLHOOKSTRUCT));
                 if ((m.flags & Nativo.LLMHF_INJECTED) == 0)
@@ -355,12 +398,56 @@ namespace CelularRemoto
             if (hookTeclado != IntPtr.Zero) { Nativo.UnhookWindowsHookEx(hookTeclado); hookTeclado = IntPtr.Zero; }
             if (hookMouse != IntPtr.Zero) { Nativo.UnhookWindowsHookEx(hookMouse); hookMouse = IntPtr.Zero; }
             etiqueta.Dispose();
+            cursorOculto.Dispose();
             if (canal != null)
             {
                 var c = canal;
                 canal = null;
                 Task.Run(() => c.Dispose());
             }
+        }
+    }
+
+    // Janelinha quase invisivel embaixo da seta com um cursor vazio: esconde a seta so ali,
+    // sem mexer no cursor do Windows (se o app fechar, ela some junto)
+    class CursorOculto : Form
+    {
+        static readonly Cursor Vazio = CriarVazio();
+
+        static Cursor CriarVazio()
+        {
+            using (var b = new Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+                return new Cursor(b.GetHicon());
+        }
+
+        public CursorOculto()
+        {
+            FormBorderStyle = FormBorderStyle.None;
+            ShowInTaskbar = false;
+            TopMost = true;
+            StartPosition = FormStartPosition.Manual;
+            Size = new Size(64, 64);
+            BackColor = Color.Black;
+            Opacity = 0.01;   // invisivel, mas continua debaixo da seta
+            Cursor = Vazio;
+        }
+
+        protected override bool ShowWithoutActivation { get { return true; } }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+                cp.ExStyle |= 0x08000000 | 0x80 | 0x8;   // NOACTIVATE, TOOLWINDOW, TOPMOST
+                return cp;
+            }
+        }
+
+        public void MostrarEm(Point centro)
+        {
+            Location = new Point(centro.X - Width / 2, centro.Y - Height / 2);
+            if (!Visible) Show();
         }
     }
 

@@ -29,6 +29,7 @@ namespace CelularRemoto
         [DataMember] public bool DigitarComAcentos;
         [DataMember] public bool ManterAcordado;
         [DataMember] public bool MapeadorAtivo;
+        [DataMember] public string TeclaModoJogo, TeclaEditor, TeclaMouse;   // nomes de Keys
         [DataMember] public string UltimoSerial;
 
         public static Configuracao Padrao()
@@ -44,6 +45,7 @@ namespace CelularRemoto
             SempreNoTopo = true; TelaCheia = false; ApagarTela = true;
             DesligarTelaAoFechar = false; MostrarToques = false; Som = true;
             Gravar = false; DesligarDepuracaoAoFechar = false; DigitarComAcentos = true; ManterAcordado = true; MapeadorAtivo = false; UltimoSerial = null;
+            TeclaModoJogo = "F1"; TeclaEditor = "F2"; TeclaMouse = "F3";
         }
 
         // O desserializador nao chama construtor: campos ausentes no JSON ficam com o padrao
@@ -56,6 +58,9 @@ namespace CelularRemoto
             if (!Resolucoes.Contains(Resolucao)) Resolucao = p.Resolucao;
             if (!Quadros.Contains(Fps)) Fps = p.Fps;
             if (!Bitrates.Contains(BitrateMbps)) BitrateMbps = p.BitrateMbps;
+            if (string.IsNullOrEmpty(TeclaModoJogo)) TeclaModoJogo = p.TeclaModoJogo;
+            if (string.IsNullOrEmpty(TeclaEditor)) TeclaEditor = p.TeclaEditor;
+            if (string.IsNullOrEmpty(TeclaMouse)) TeclaMouse = p.TeclaMouse;
         }
     }
 

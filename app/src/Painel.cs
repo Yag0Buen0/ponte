@@ -19,6 +19,7 @@ namespace CelularRemoto
         Button atualizar, restaurar, iniciar, abrirAssimMesmo;
         TaskCompletionSource<bool> pularEspera;
         CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar, acentos, manterAcordado, mapeador;
+        BotaoTecla teclaModoJogo, teclaEditor, teclaMouse;
         ModoJogo modoJogo;
         Label avisoDesempenho, avisoDepuracao, status;
         LinkLabel creditos;
@@ -92,6 +93,15 @@ namespace CelularRemoto
             return c;
         }
 
+        static FlowLayoutPanel LinhaTecla(string texto, BotaoTecla botao)
+        {
+            var l = Linha();
+            l.Controls.AddRange(new Control[] {
+                new Label { Text = texto, Width = 180, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(20, 6, 0, 0) },
+                botao });
+            return l;
+        }
+
         static CheckBox Opcao(string texto)
         {
             return new CheckBox { Text = texto, AutoSize = true };
@@ -129,6 +139,9 @@ namespace CelularRemoto
             som = Opcao("Som do celular no PC");
             gravar = Opcao("Gravar a tela (salva na pasta Vídeos)");
             mapeador = Opcao("Mapeador de teclas para jogos (F1 liga o modo jogo · F2 edita o mapa)");
+            teclaModoJogo = new BotaoTecla();
+            teclaEditor = new BotaoTecla();
+            teclaMouse = new BotaoTecla();
             acentos = Opcao("Digitar com acentos (desligue para jogos que usam W A S D)");
 
             restaurar = new Button { Text = "Restaurar padrão", AutoSize = true };
@@ -156,7 +169,10 @@ namespace CelularRemoto
             var direita = Coluna();
             direita.Controls.AddRange(new Control[] {
                 Grupo("Celular", apagarTela, manterAcordado, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
-                Grupo("Jogos", mapeador),
+                Grupo("Jogos", mapeador,
+                    LinhaTecla("Modo jogo", teclaModoJogo),
+                    LinhaTecla("Editar o mapa", teclaEditor),
+                    LinhaTecla("Soltar/prender o mouse", teclaMouse)),
                 Grupo("Extras", gravar)
             });
             var colunas = Linha();
@@ -205,6 +221,9 @@ namespace CelularRemoto
             acentos.Checked = c.DigitarComAcentos;
             manterAcordado.Checked = c.ManterAcordado;
             mapeador.Checked = c.MapeadorAtivo;
+            teclaModoJogo.Tecla = c.TeclaModoJogo;
+            teclaEditor.Tecla = c.TeclaEditor;
+            teclaMouse.Tecla = c.TeclaMouse;
             AtualizarAvisos();
         }
 
@@ -225,6 +244,9 @@ namespace CelularRemoto
                 DigitarComAcentos = acentos.Checked,
                 ManterAcordado = manterAcordado.Checked,
                 MapeadorAtivo = mapeador.Checked,
+                TeclaModoJogo = teclaModoJogo.Tecla,
+                TeclaEditor = teclaEditor.Tecla,
+                TeclaMouse = teclaMouse.Tecla,
                 UltimoSerial = config.UltimoSerial
             };
         }
@@ -326,7 +348,7 @@ namespace CelularRemoto
             if (c.MapeadorAtivo)
                 aoAbrir = p => {
                     var janela = p.MainWindowHandle;
-                    BeginInvoke(new Action(() => { FecharModoJogo(); modoJogo = new ModoJogo(serial, janela, this); }));
+                    BeginInvoke(new Action(() => { FecharModoJogo(); modoJogo = new ModoJogo(serial, janela, this, c); }));
                 };
             return Task.Run(() => {
                 var r = Adb.RodarScrcpy(c, serial, aoAbrir);
@@ -393,6 +415,46 @@ namespace CelularRemoto
             var atual = celular.SelectedItem as Aparelho;
             if (atual == null) { status.Text = "Mais de um celular: escolha qual usar e clique em Iniciar."; return null; }
             return atual;
+        }
+    }
+
+    // Clique e aperte a tecla desejada (Esc cancela)
+    public class BotaoTecla : Button
+    {
+        string tecla;
+        bool esperando;
+
+        public BotaoTecla()
+        {
+            Width = 160;
+            Click += (s, e) => { esperando = true; Text = "aperte uma tecla..."; Focus(); };
+        }
+
+        public string Tecla
+        {
+            get { return tecla; }
+            set { tecla = value; Text = Teclas.Exibir(value); }
+        }
+
+        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+        {
+            if (esperando) e.IsInputKey = true;
+            base.OnPreviewKeyDown(e);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (!esperando) { base.OnKeyDown(e); return; }
+            esperando = false;
+            if (e.KeyCode == Keys.Escape) Text = Teclas.Exibir(tecla);
+            else Tecla = Teclas.Nome(e.KeyCode);
+            e.Handled = e.SuppressKeyPress = true;
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            if (esperando) { esperando = false; Text = Teclas.Exibir(tecla); }
         }
     }
 }

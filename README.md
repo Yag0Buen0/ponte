@@ -69,7 +69,10 @@ Marque **Mapeador de teclas para jogos** no painel (grupo Jogos) e clique em Ini
   - **+ Analógico (WASD)**: arraste até o analógico de andar; a rodinha do mouse muda o tamanho.
   - **+ Câmera**: arraste até a área livre onde você arrasta o dedo para olhar; a rodinha muda a sensibilidade.
   - **Delete** remove o marcador selecionado; **Salvar** grava; **Esc** cancela.
-- **F1** liga e desliga o **modo jogo**: as teclas do mapa viram toques (vários ao mesmo tempo: andar, olhar e atirar juntos), o mouse vira a câmera e fica preso no centro da janela. F1 de novo, ou trocar de janela (Alt+Tab), sai do modo jogo e solta o mouse.
+- **F1** liga e desliga o **modo jogo**: as teclas do mapa viram toques (vários ao mesmo tempo: andar, olhar e atirar juntos) e o mouse vira a câmera, com a seta escondida e presa no centro da janela. F1 de novo, ou trocar de janela (Alt+Tab), sai do modo jogo e solta o mouse.
+- **F3** solta e prende o mouse sem sair do modo jogo: solto, a seta aparece e o clique funciona normal (menus, loja, mochila); as teclas do mapa continuam valendo.
+
+As três teclas (F1, F2, F3) podem ser trocadas no painel, no grupo Jogos: clique no botão da tecla e aperte a nova.
 
 O mapa fica salvo **por jogo** (em `%APPDATA%\CelularRemoto\mapas\`): ao apertar F1, o app reconhece o jogo aberto no celular e carrega o mapa dele. Teclas fora do mapa continuam funcionando normalmente.
 
