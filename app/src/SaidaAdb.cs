@@ -62,6 +62,30 @@ namespace CelularRemoto
             return (dumpsys ?? "").Contains("isKeyguardShowing=true");
         }
 
+        // `dumpsys input` -> tela ativa: "Viewport INTERNAL ... orientation=N ... logicalFrame=[0, 0, L, A] ... isActive=[1]"
+        public static Tela Tela(string dumpsys)
+        {
+            foreach (var l in Linhas(dumpsys))
+            {
+                if (!l.Contains("Viewport INTERNAL") || !l.Contains("isActive=[1]")) continue;
+                var m = Regex.Match(l, @"orientation=(\d+).*?logicalFrame=\[\s*-?\d+,\s*-?\d+,\s*(\d+),\s*(\d+)\]");
+                if (m.Success)
+                    return new Tela {
+                        Rotacao = int.Parse(m.Groups[1].Value),
+                        Largura = int.Parse(m.Groups[2].Value),
+                        Altura = int.Parse(m.Groups[3].Value)
+                    };
+            }
+            return null;
+        }
+
+        // `dumpsys window` -> pacote do app em foco (null para janelas do sistema, ex. NotificationShade)
+        public static string PacoteEmFoco(string dumpsys)
+        {
+            var m = Regex.Match(dumpsys ?? "", @"mCurrentFocus=Window\{\S+ u\d+ ([\w.]+)/");
+            return m.Success ? m.Groups[1].Value : null;
+        }
+
         // PC sem saida de audio padrao: o scrcpy fecha com este erro
         public static bool ErroDeAudio(string log)
         {

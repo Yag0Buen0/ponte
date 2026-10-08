@@ -13,7 +13,7 @@ New-Item -ItemType Directory -Force $bin | Out-Null
 
 $refs = '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll', '/reference:System.Runtime.Serialization.dll'
 # Partes puras: entram no app e nos testes
-$puros = 'Opcoes.cs', 'SaidaAdb.cs', 'ConfigArquivo.cs' |
+$puros = 'Opcoes.cs', 'SaidaAdb.cs', 'ConfigArquivo.cs', 'Mapeador.cs' |
     ForEach-Object { Join-Path $src $_ } | Where-Object { Test-Path $_ }
 
 function Invoke-Csc([string[]]$argumentos) {

@@ -206,6 +206,92 @@ static class Testes
         Verdade(!Args(c).Contains("--prefer-text"), "desligado para jogos");
     }
 
+    // ---------- Mapeador ----------
+
+    public static void Teste_Mapa_MensagemDeToque()
+    {
+        var b = MensagemToque.Criar(MensagemToque.Down, 7, 100, 2000, 1080, 2340, 1f);
+        Igual(32, b.Length);
+        Igual("02-00-00-00-00-00-00-00-00-07-00-00-00-64-00-00-07-D0-04-38-09-24-FF-FF-00-00-00-00-00-00-00-00",
+            BitConverter.ToString(b));
+        var up = MensagemToque.Criar(MensagemToque.Up, 7, 1, 2, 3, 4, 0f);
+        Igual((byte)1, up[1]);
+        Igual((byte)0, up[22]);
+    }
+
+    public static void Teste_Mapa_TelaDoDumpsysInput()
+    {
+        var saida = "  Viewport INTERNAL: displayId=0, uniqueId=local:1, port=135, orientation=1, densityDpi=450 " +
+                    "logicalFrame=[0, 0, 2340, 1080], physicalFrame=[0, 0, 2340, 1080], deviceSize=[1080, 2340], isActive=[1]\n" +
+                    "  Viewport INTERNAL: displayId=0, orientation=0, logicalFrame=[0, 0, 1080, 2340], isActive=[0]\n";
+        var t = SaidaAdb.Tela(saida);
+        Igual(2340, t.Largura); Igual(1080, t.Altura); Igual(1, t.Rotacao);
+        Igual(null, SaidaAdb.Tela("nada aqui"));
+    }
+
+    public static void Teste_Mapa_PacoteEmFoco()
+    {
+        Igual("com.dts.freefireth", SaidaAdb.PacoteEmFoco(
+            "  mCurrentFocus=Window{b7e493c u0 com.dts.freefireth/com.dts.freefireth.FFMainActivity}"));
+        Igual(null, SaidaAdb.PacoteEmFoco("  mCurrentFocus=Window{b7e493c u0 NotificationShade}"));
+        Igual(null, SaidaAdb.PacoteEmFoco("  mCurrentFocus=null"));
+    }
+
+    public static void Teste_Mapa_NormalizadoParaCelular()
+    {
+        var t = new Tela { Largura = 2340, Altura = 1080 };
+        var p = Mapeamento.ParaCelular(0.5, 0.25, t);
+        Igual(1170, p.X); Igual(270, p.Y);
+        p = Mapeamento.ParaCelular(1.2, -0.1, t);   // fora da tela: encosta na borda
+        Igual(2339, p.X); Igual(0, p.Y);
+    }
+
+    public static void Teste_Mapa_Analogico()
+    {
+        var t = new Tela { Largura = 2000, Altura = 1000 };
+        var el = new ElementoMapa { Tipo = ElementoMapa.Analogico, X = 0.2, Y = 0.7, Raio = 0.05 };
+        Verdade(Mapeamento.PontoAnalogico(el, t, false, false, false, false) == null, "nada apertado = solta");
+        var p = Mapeamento.PontoAnalogico(el, t, true, false, false, false).Value;   // W: para cima
+        Igual(400, p.X); Igual(600, p.Y);                                          // centro 400,700 - raio 100
+        p = Mapeamento.PontoAnalogico(el, t, true, false, false, true).Value;      // W+D: diagonal
+        Igual(471, p.X); Igual(629, p.Y);
+        p = Mapeamento.PontoAnalogico(el, t, true, true, false, false).Value;      // W+S se anulam: centro
+        Igual(400, p.X); Igual(700, p.Y);
+    }
+
+    public static void Teste_Mapa_Camera()
+    {
+        var t = new Tela { Largura = 2000, Altura = 1000 };
+        var cam = new DedoCamera(new ElementoMapa { Tipo = ElementoMapa.Camera, X = 0.7, Y = 0.5, Sensibilidade = 2 }, t);
+        var ev = cam.Mover(10, 0);   // primeiro movimento: encosta o dedo no centro e move
+        Igual(2, ev.Count);
+        Igual(MensagemToque.Down, ev[0].Acao); Igual(1400, ev[0].Ponto.X); Igual(500, ev[0].Ponto.Y);
+        Igual(MensagemToque.Move, ev[1].Acao); Igual(1420, ev[1].Ponto.X);
+        ev = cam.Mover(0, -5);
+        Igual(1, ev.Count); Igual(1420, ev[0].Ponto.X); Igual(490, ev[0].Ponto.Y);
+        ev = cam.Mover(300, 0);      // passou do raio (0,25 x 2000 = 500): levanta e recomeca do centro
+        Igual(MensagemToque.Up, ev[0].Acao);
+        Igual(MensagemToque.Down, ev[1].Acao); Igual(1400, ev[1].Ponto.X);
+        Igual(MensagemToque.Move, ev.Last().Acao);
+        Igual(1, cam.Soltar().Count);
+        Igual(0, cam.Soltar().Count);
+    }
+
+    public static void Teste_Mapa_ArquivoIdaEVolta()
+    {
+        var caminho = ArquivoTemp();
+        var m = new MapaTeclas();
+        m.Elementos.Add(new ElementoMapa { Tipo = ElementoMapa.Toque, Tecla = "Space", X = 0.9, Y = 0.8 });
+        m.Elementos.Add(ElementoMapa.NovoAnalogico(0.2, 0.7));
+        MapaArquivo.Salvar(caminho, m);
+        var lido = MapaArquivo.Ler(caminho);
+        Igual(2, lido.Elementos.Count);
+        Igual("Space", lido.Elementos[0].Tecla);
+        Igual("W", lido.Elementos[1].Cima);
+        Igual(0, MapaArquivo.Ler(ArquivoTemp()).Elementos.Count);
+        Directory.Delete(Path.GetDirectoryName(caminho), true);
+    }
+
     // ---------- ConfigArquivo ----------
 
     static string ArquivoTemp()
