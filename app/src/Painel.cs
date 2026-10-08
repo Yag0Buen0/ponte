@@ -38,7 +38,18 @@ namespace CelularRemoto
             MontarTela();
             config = ConfigArquivo.Ler(caminhoConfig);
             MostrarConfig(config);
-            Shown += async (s, e) => await AtualizarCelulares();
+            Shown += async (s, e) => { CaberNaTela(); await AtualizarCelulares(); };
+        }
+
+        // Tela menor que o painel: tamanho fixo na area util, com barra de rolagem
+        void CaberNaTela()
+        {
+            var area = Screen.FromControl(this).WorkingArea;
+            if (Height <= area.Height && Width <= area.Width) return;
+            AutoSize = false;
+            AutoScroll = true;
+            Size = new Size(Math.Min(Width + SystemInformation.VerticalScrollBarWidth, area.Width), area.Height);
+            Location = new Point(area.Left + (area.Width - Width) / 2, area.Top);
         }
 
         // ---------- montagem ----------
@@ -122,11 +133,11 @@ namespace CelularRemoto
 
             restaurar = new Button { Text = "Restaurar padrão", AutoSize = true };
             iniciar = new Button { Text = "▶  Iniciar", Width = 150, Height = 40, Font = new Font("Segoe UI", 11, FontStyle.Bold) };
-            status = new Label { AutoSize = true, MaximumSize = new Size(460, 0), ForeColor = Color.DimGray, Margin = new Padding(0, 6, 0, 0) };
+            status = new Label { AutoSize = true, MaximumSize = new Size(938, 0), ForeColor = Color.DimGray, Margin = new Padding(0, 6, 0, 0) };
             creditos = new LinkLabel { Text = "Créditos e licenças", AutoSize = true, Margin = new Padding(0, 8, 0, 0) };
             abrirAssimMesmo = new Button { Text = "Abrir assim mesmo (vou digitar o PIN)", AutoSize = true, Visible = false };
 
-            var botoes = new TableLayoutPanel { ColumnCount = 2, Width = 460, Height = 46, Margin = new Padding(0, 8, 0, 0) };
+            var botoes = new TableLayoutPanel { ColumnCount = 2, Width = 938, Height = 46, Margin = new Padding(0, 8, 0, 0) };
             botoes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             botoes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             restaurar.Anchor = AnchorStyles.Left;
@@ -134,21 +145,25 @@ namespace CelularRemoto
             botoes.Controls.Add(restaurar, 0, 0);
             botoes.Controls.Add(iniciar, 1, 0);
 
-            var tudo = Coluna();
-            tudo.Controls.AddRange(new Control[] {
-                linhaCelular,
+            // Duas colunas: numa so, o painel passa da altura de telas de 768 px
+            var esquerda = Coluna();
+            esquerda.Controls.AddRange(new Control[] {
                 Grupo("Imagem e desempenho", linhaRes, linhaFps, linhaQual, avisoDesempenho),
                 Grupo("Janela", sempreNoTopo, telaCheia),
-                Grupo("Celular", apagarTela, manterAcordado, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
                 Grupo("Som", som),
-                Grupo("Teclado", acentos),
-                Grupo("Jogos", mapeador),
-                Grupo("Extras", gravar),
-                botoes,
-                status,
-                abrirAssimMesmo,
-                creditos
+                Grupo("Teclado", acentos)
             });
+            var direita = Coluna();
+            direita.Controls.AddRange(new Control[] {
+                Grupo("Celular", apagarTela, manterAcordado, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
+                Grupo("Jogos", mapeador),
+                Grupo("Extras", gravar)
+            });
+            var colunas = Linha();
+            colunas.Controls.AddRange(new Control[] { esquerda, direita });
+
+            var tudo = Coluna();
+            tudo.Controls.AddRange(new Control[] { linhaCelular, colunas, botoes, status, abrirAssimMesmo, creditos });
             Controls.Add(tudo);
             AcceptButton = iniciar;
 
