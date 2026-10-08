@@ -197,6 +197,11 @@ static class Testes
         Verdade(!Args(c).Contains("--screen-off-timeout"), "desligado usa o tempo de tela do celular");
     }
 
+    public static void Teste_Opcoes_MapeadorDesligadoPorPadrao()
+    {
+        Verdade(!Configuracao.Padrao().MapeadorAtivo, "mapeador comeca desligado");
+    }
+
     public static void Teste_Opcoes_Acentos()
     {
         var c = Configuracao.Padrao();

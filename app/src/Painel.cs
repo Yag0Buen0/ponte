@@ -18,7 +18,8 @@ namespace CelularRemoto
         ComboBox celular, resolucao, quadros, qualidade;
         Button atualizar, restaurar, iniciar, abrirAssimMesmo;
         TaskCompletionSource<bool> pularEspera;
-        CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar, acentos, manterAcordado;
+        CheckBox sempreNoTopo, telaCheia, apagarTela, desligarTela, mostrarToques, desligarDepuracao, som, gravar, acentos, manterAcordado, mapeador;
+        ModoJogo modoJogo;
         Label avisoDesempenho, avisoDepuracao, status;
         LinkLabel creditos;
 
@@ -116,6 +117,7 @@ namespace CelularRemoto
             avisoDepuracao = Aviso("Na próxima vez não tem conexão rápida: você vai precisar religar a Depuração por Wi-Fi no celular antes de clicar em Iniciar.");
             som = Opcao("Som do celular no PC");
             gravar = Opcao("Gravar a tela (salva na pasta Vídeos)");
+            mapeador = Opcao("Mapeador de teclas para jogos (F1 liga o modo jogo · F2 edita o mapa)");
             acentos = Opcao("Digitar com acentos (desligue para jogos que usam W A S D)");
 
             restaurar = new Button { Text = "Restaurar padrão", AutoSize = true };
@@ -140,6 +142,7 @@ namespace CelularRemoto
                 Grupo("Celular", apagarTela, manterAcordado, desligarTela, mostrarToques, desligarDepuracao, avisoDepuracao),
                 Grupo("Som", som),
                 Grupo("Teclado", acentos),
+                Grupo("Jogos", mapeador),
                 Grupo("Extras", gravar),
                 botoes,
                 status,
@@ -186,6 +189,7 @@ namespace CelularRemoto
             gravar.Checked = c.Gravar;
             acentos.Checked = c.DigitarComAcentos;
             manterAcordado.Checked = c.ManterAcordado;
+            mapeador.Checked = c.MapeadorAtivo;
             AtualizarAvisos();
         }
 
@@ -205,6 +209,7 @@ namespace CelularRemoto
                 Gravar = gravar.Checked,
                 DigitarComAcentos = acentos.Checked,
                 ManterAcordado = manterAcordado.Checked,
+                MapeadorAtivo = mapeador.Checked,
                 UltimoSerial = config.UltimoSerial
             };
         }
@@ -275,7 +280,7 @@ namespace CelularRemoto
             try
             {
                 var c = config;
-                var r = await Task.Run(() => Adb.RodarScrcpy(c, aparelho.Serial));
+                var r = await Rodar(c, aparelho.Serial);
                 if (r.ErroAudio && config.Som)
                 {
                     // PC sem saida de audio: reabre sem som e lembra disso
@@ -283,7 +288,7 @@ namespace CelularRemoto
                     som.Checked = false;
                     Salvar();
                     c = config;
-                    r = await Task.Run(() => Adb.RodarScrcpy(c, aparelho.Serial));
+                    r = await Rodar(c, aparelho.Serial);
                 }
                 if (config.DesligarDepuracaoAoFechar)
                     await Task.Run(() => Adb.DesligarDepuracao(aparelho.Serial));
@@ -293,9 +298,31 @@ namespace CelularRemoto
             }
             finally
             {
+                FecharModoJogo();
                 Show();
                 Activate();
             }
+        }
+
+        // Roda o scrcpy; com o mapeador ligado, cria o modo jogo assim que a janela do celular existe
+        Task<ResultadoScrcpy> Rodar(Configuracao c, string serial)
+        {
+            Action<System.Diagnostics.Process> aoAbrir = null;
+            if (c.MapeadorAtivo)
+                aoAbrir = p => {
+                    var janela = p.MainWindowHandle;
+                    BeginInvoke(new Action(() => { FecharModoJogo(); modoJogo = new ModoJogo(serial, janela, this); }));
+                };
+            return Task.Run(() => {
+                var r = Adb.RodarScrcpy(c, serial, aoAbrir);
+                if (c.MapeadorAtivo) Invoke(new Action(FecharModoJogo));
+                return r;
+            });
+        }
+
+        void FecharModoJogo()
+        {
+            if (modoJogo != null) { modoJogo.Dispose(); modoJogo = null; }
         }
 
         // A tela de bloqueio nao aparece no PC (fica preta): espera o usuario desbloquear no celular,

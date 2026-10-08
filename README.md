@@ -60,6 +60,21 @@ A janela do celular pode ser **redimensionada para qualquer tamanho** (a imagem 
 | Apagar/acender tela física | Alt+O / Alt+Shift+O |
 | Colar texto do PC | Ctrl+V |
 
+## Jogos: mapeador de teclas
+
+Marque **Mapeador de teclas para jogos** no painel (grupo Jogos) e clique em Iniciar. Com a janela do celular selecionada:
+
+- **F2** abre o editor por cima da tela do jogo:
+  - **+ Toque**: um botão do jogo (pular, agachar, recarregar...). Arraste até o botão e aperte a tecla que quer usar. Para usar os botões do mouse, segure **Ctrl** e clique com o botão esquerdo (atirar) ou direito (mirar).
+  - **+ Analógico (WASD)**: arraste até o analógico de andar; a rodinha do mouse muda o tamanho.
+  - **+ Câmera**: arraste até a área livre onde você arrasta o dedo para olhar; a rodinha muda a sensibilidade.
+  - **Delete** remove o marcador selecionado; **Salvar** grava; **Esc** cancela.
+- **F1** liga e desliga o **modo jogo**: as teclas do mapa viram toques (vários ao mesmo tempo: andar, olhar e atirar juntos), o mouse vira a câmera e fica preso no centro da janela. F1 de novo, ou trocar de janela (Alt+Tab), sai do modo jogo e solta o mouse.
+
+O mapa fica salvo **por jogo** (em `%APPDATA%\CelularRemoto\mapas\`): ao apertar F1, o app reconhece o jogo aberto no celular e carrega o mapa dele. Teclas fora do mapa continuam funcionando normalmente.
+
+Alguns jogos online não permitem teclado e mouse ou mapeadores; confira as regras do jogo.
+
 ## Celular bloqueado
 
 O Android **não deixa capturar a tela de bloqueio**, então ela ficaria preta no PC. Por isso, se o celular estiver bloqueado ao clicar em Iniciar, o painel avisa e **espera você desbloquear no celular**: a tela abre sozinha logo depois.

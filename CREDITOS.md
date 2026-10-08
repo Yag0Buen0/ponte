@@ -8,6 +8,7 @@ Criado neste projeto:
 - o app **Celular Remoto** (`app/`): painel de configuração (resolução, quadros por segundo, qualidade, janela, som, gravação) com avisos de bateria e aquecimento, seletor de celular, espera pelo desbloqueio, opção de desligar a Depuração por Wi-Fi ao fechar;
 - o **assistente de pareamento**: o usuário digita só o código de 6 dígitos, e o IP e a porta são achados sozinhos pela rede (mDNS);
 - o **instalador** (`instalador/`) que junta tudo, sem precisar de administrador;
+- o **mapeador de teclas para jogos**: editor visual, analógico WASD, câmera com o mouse e vários toques ao mesmo tempo por uma segunda conexão de controle com o `scrcpy-server`;
 - a escolha de configurações que resolveu travamentos em celulares Samsung com a tela apagada (render OpenGL).
 
 O espelhamento e o controle do celular em si são feitos pelo **scrcpy** (abaixo). O Celular Remoto é uma interface e um instalador em volta dele.

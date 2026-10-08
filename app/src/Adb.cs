@@ -37,6 +37,11 @@ namespace CelularRemoto
             return File.Exists(embutido) ? embutido : nome;
         }
 
+        public static string ArquivoServidor()
+        {
+            return Path.Combine(Path.GetDirectoryName(Ferramenta("scrcpy")) ?? "", "scrcpy-server");
+        }
+
         public static bool FerramentasPresentes()
         {
             return File.Exists(Ferramenta("adb")) && File.Exists(Ferramenta("scrcpy"));
@@ -70,6 +75,31 @@ namespace CelularRemoto
                 else p.WaitForExit();   // garante que os eventos de saida terminaram
             }
             lock (saida) return saida.ToString();
+        }
+
+        // Processo do adb que continua rodando (ex.: servidor do canal de toques); saida descartada
+        public static Process Iniciar(params string[] args)
+        {
+            var psi = new ProcessStartInfo(Ferramenta("adb"), Opcoes.JuntarArgumentos(args)) {
+                UseShellExecute = false, CreateNoWindow = true,
+                RedirectStandardOutput = true, RedirectStandardError = true
+            };
+            var p = Process.Start(psi);
+            p.OutputDataReceived += (s, e) => { };
+            p.ErrorDataReceived += (s, e) => { };
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            return p;
+        }
+
+        public static Tela LerTela(string serial)
+        {
+            return SaidaAdb.Tela(Executar(8000, "-s", serial, "shell", "dumpsys input | grep 'Viewport INTERNAL'"));
+        }
+
+        public static string PacoteEmFoco(string serial)
+        {
+            return SaidaAdb.PacoteEmFoco(Executar(8000, "-s", serial, "shell", "dumpsys window | grep mCurrentFocus"));
         }
 
         static string Prop(string serial, string nome)
@@ -173,7 +203,7 @@ namespace CelularRemoto
         }
 
         // Roda o scrcpy ate a janela fechar
-        public static ResultadoScrcpy RodarScrcpy(Configuracao c, string serial)
+        public static ResultadoScrcpy RodarScrcpy(Configuracao c, string serial, Action<Process> aoAbrirJanela = null)
         {
             var args = Opcoes.MontarArgumentos(c, serial, DateTime.Now,
                 Environment.GetFolderPath(Environment.SpecialFolder.MyVideos));
@@ -191,6 +221,16 @@ namespace CelularRemoto
                 p.Start();
                 p.BeginOutputReadLine();
                 p.BeginErrorReadLine();
+                if (aoAbrirJanela != null)
+                {
+                    // Espera a janela existir (o mapeador precisa dela)
+                    for (int i = 0; i < 100 && !p.HasExited; i++)
+                    {
+                        p.Refresh();
+                        if (p.MainWindowHandle != IntPtr.Zero) { aoAbrirJanela(p); break; }
+                        Thread.Sleep(100);
+                    }
+                }
                 p.WaitForExit();
                 var texto = log.ToString();
                 var rapido = (DateTime.Now - inicio).TotalSeconds < 15;

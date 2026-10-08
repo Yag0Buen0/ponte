@@ -28,6 +28,7 @@ namespace CelularRemoto
         [DataMember] public bool DesligarDepuracaoAoFechar;
         [DataMember] public bool DigitarComAcentos;
         [DataMember] public bool ManterAcordado;
+        [DataMember] public bool MapeadorAtivo;
         [DataMember] public string UltimoSerial;
 
         public static Configuracao Padrao()
@@ -42,7 +43,7 @@ namespace CelularRemoto
             Resolucao = 1280; Fps = 60; BitrateMbps = 8;
             SempreNoTopo = true; TelaCheia = false; ApagarTela = true;
             DesligarTelaAoFechar = false; MostrarToques = false; Som = true;
-            Gravar = false; DesligarDepuracaoAoFechar = false; DigitarComAcentos = true; ManterAcordado = true; UltimoSerial = null;
+            Gravar = false; DesligarDepuracaoAoFechar = false; DigitarComAcentos = true; ManterAcordado = true; MapeadorAtivo = false; UltimoSerial = null;
         }
 
         // O desserializador nao chama construtor: campos ausentes no JSON ficam com o padrao
