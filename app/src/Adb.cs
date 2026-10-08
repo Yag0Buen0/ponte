@@ -92,6 +92,30 @@ namespace CelularRemoto
             return p;
         }
 
+        // Foto da tela atual do celular (PNG); null se falhar
+        public static System.Drawing.Image CapturarTela(string serial)
+        {
+            var psi = new ProcessStartInfo(Ferramenta("adb"), Opcoes.JuntarArgumentos(new[] { "-s", serial, "exec-out", "screencap", "-p" })) {
+                UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true
+            };
+            try
+            {
+                using (var p = Process.Start(psi))
+                {
+                    var memoria = new MemoryStream();
+                    var copia = p.StandardOutput.BaseStream.CopyToAsync(memoria);
+                    if (!copia.Wait(15000)) { try { p.Kill(); } catch (InvalidOperationException) { } return null; }
+                    p.WaitForExit(5000);
+                    memoria.Position = 0;
+                    return memoria.Length > 0 ? System.Drawing.Image.FromStream(memoria) : null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public static Tela LerTela(string serial)
         {
             return SaidaAdb.Tela(Executar(8000, "-s", serial, "shell", "dumpsys input | grep 'Viewport INTERNAL'"));

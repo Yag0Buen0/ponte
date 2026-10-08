@@ -1,4 +1,5 @@
-// Editor do mapa: camada escura semitransparente por cima da janela do celular.
+// Editor do mapa: por cima da janela do celular, mostra uma foto da tela do jogo
+// (um pouco escurecida) com os marcadores solidos.
 // Clique seleciona e arrasta; com um marcador selecionado, aperte a tecla desejada
 // (Ctrl+clique esquerdo/direito = botoes do mouse); Delete remove; rodinha ajusta
 // raio do analogico / sensibilidade da camera; Esc cancela.
@@ -18,10 +19,12 @@ namespace CelularRemoto
         ElementoMapa selecionado;
         bool arrastando;
         readonly Label ajuda;
+        readonly Image fundo;
 
-        public EditorMapa(MapaTeclas mapa, string pacote, Rectangle area)
+        public EditorMapa(MapaTeclas mapa, string pacote, Rectangle area, Image fundo)
         {
             Mapa = mapa;
+            this.fundo = fundo;
             Text = "Mapa de teclas";
             FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.Manual;
@@ -29,7 +32,6 @@ namespace CelularRemoto
             TopMost = true;
             ShowInTaskbar = false;
             BackColor = Color.Black;
-            Opacity = 0.6;
             DoubleBuffered = true;
             KeyPreview = true;
 
@@ -111,6 +113,11 @@ namespace CelularRemoto
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
+            if (fundo != null)
+            {
+                g.DrawImage(fundo, ClientRectangle);
+                using (var veu = new SolidBrush(Color.FromArgb(90, 0, 0, 0))) g.FillRectangle(veu, ClientRectangle);
+            }
             g.SmoothingMode = SmoothingMode.AntiAlias;
             using (var fonte = new Font("Segoe UI", 11, FontStyle.Bold))
             using (var pequena = new Font("Segoe UI", 8, FontStyle.Bold))
@@ -121,7 +128,7 @@ namespace CelularRemoto
                     var r = Raio(el);
                     var cor = el == selecionado ? Color.Gold : Color.White;
                     using (var caneta = new Pen(cor, 3))
-                    using (var preenchimento = new SolidBrush(Color.FromArgb(120, 30, 120, 220)))
+                    using (var preenchimento = new SolidBrush(Color.FromArgb(170, 20, 90, 200)))
                     using (var pincel = new SolidBrush(cor))
                     {
                         var circulo = new Rectangle(c.X - r, c.Y - r, 2 * r, 2 * r);

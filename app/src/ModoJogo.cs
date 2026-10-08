@@ -167,9 +167,13 @@ namespace CelularRemoto
             try
             {
                 var s = serial;
-                var p = await Task.Run(() => Adb.PacoteEmFoco(s) ?? "geral");
+                Mostrar("Abrindo o editor...");
+                var r = await Task.Run(() => Tuple.Create(Adb.PacoteEmFoco(s) ?? "geral", Adb.CapturarTela(s)));
+                Esconder();
+                var p = r.Item1;
                 var caminho = MapaArquivo.CaminhoDoJogo(p);
-                using (var editor = new EditorMapa(MapaArquivo.Ler(caminho), p, Nativo.AreaCliente(janela)))
+                using (var foto = r.Item2)
+                using (var editor = new EditorMapa(MapaArquivo.Ler(caminho), p, Nativo.AreaCliente(janela), foto))
                 {
                     if (editor.ShowDialog() == DialogResult.OK)
                     {
